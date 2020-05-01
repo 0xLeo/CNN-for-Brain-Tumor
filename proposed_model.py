@@ -2,16 +2,19 @@
 from __future__ import division, print_function, absolute_import
 
 from skimage import color, io
-from scipy.misc import imresize, toimage
+#from scipy.misc import imresize, toimage
 import numpy as np
 
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score
+from sklearn.metrics import precision_score 
+from sklearn.metrics import recall_score 
 from sklearn.metrics import classification_report
 from sklearn.model_selection import KFold
 
 import os
+import sys
 from glob import glob
 
 import tflearn
@@ -36,13 +39,15 @@ np.set_printoptions(suppress=True)
 ### Imports picture file into the model
 ########################################
 
-# TumorA = astrocytoma = 0
-# TumorB = glioblastoma_multiforme = 1
-# TumorC = oligodendroglioma = 2
-# healthy = 3
-# unknown = 4
+# TumorA
+# TumorB
+# TumorC
+# TumorD
+# TumorE
 
-f = open('full_dataset_final.pkl', 'rb')
+if len(sys.argv) == 1:
+    raise SystemError("Usage:\n\npython <this_script> dataset_file.pkl")
+f = open(sys.argv[1], 'rb')
 print("pickle file open")
 
 ## Load from the file for X(image data) and Y(tumor type)
@@ -50,7 +55,7 @@ allX, allY = pickle.load(f)
 print("pickle opened")
 f.close()
 
-## image size set to 64x54 for faster computations ##
+## image size set to 64x64 for faster computations ##
 size_image = 64
 
 
@@ -77,25 +82,21 @@ print("layer 3")
 conv_3 = conv_2d(conv_2, nb_filter=64, filter_size=3, activation='relu', name='conv_3')
 print("layer 4")
 
-# 5: Convolution layer with 128 filters -> filter size = 2x2
-conv_4 = conv_2d(conv_3, nb_filter=128, filter_size=2, activation='relu', name='conv_4')
-print("layer 5")
-
 # 6: Max pooling layer
-network = max_pool_2d(conv_4, 2)
-print("layer 6")
+network = max_pool_2d(conv_3, 2)
+print("layer 5")
 
 # 7: Fully-connected 512 nodes layer -> activation function = ReLU
 network = fully_connected(network, 512, activation='relu')
-print("layer 7")
+print("layer 6")
 
 # 8: Dropout layer to combat overfitting
-network = dropout(network, 0.5)
-print("layer 8")
+network = dropout(network, 0.6)
+print("layer 7")
 
 # 9: Fully-connected layer with 5 outputs for five tumor categories
 network = fully_connected(network, 5, activation='softmax')
-print("layer 9")
+print("layer 8")
 
 
 # Regression layer with loss=categorical crossentropy, optimizer=adam, learning rate=0.0001
@@ -128,8 +129,12 @@ kf = KFold(n_splits=no_folds, shuffle = True, random_state=42) # create split cr
 #train_splits = []
 #test_splits = []
 
+# to plot the metrics when training is done
+accur_metrics_train = []
+accur_metrics_test = []
+
     ###################################
-    # Train model for 100 epochs
+    # Train model for N epochs
     ###################################
 for train_index, test_index in kf.split(allX):
 
@@ -144,11 +149,11 @@ for train_index, test_index in kf.split(allX):
     print("train split: " , split_no)
     split_no += 1 # iterate split no
 
-    # Train the network for 10 epochs per split (shuffles data)  -> total no of training epochs=60
-    model.fit(X, Y, n_epoch=10, run_id='cancer_detector', shuffle=True,
+    # Train the network for N epochs per split (shuffles data)  -> total no of training epochs=60
+    model.fit(X, Y, n_epoch=17, run_id='tumour_classification', shuffle=True,
         show_metric=True)
 
-    #model.save('model_cancer_detector.tflearn')
+    model.save('model_tumour_detector.tflearn')
     print("Network trained")
 
     # Calculate accuracies for test dataset and whole dataset in each split run
@@ -158,6 +163,8 @@ for train_index, test_index in kf.split(allX):
     # populate the accuracy arrays
     accuracy_array[i] = score[0] * 100
     accuracy_array2[i] = score2[0] * 100
+    accur_metrics_train.append(score)
+    accur_metrics_test.append(score2)
     i += 1 # iterate
 
     print("accuracy checked")
@@ -168,6 +175,13 @@ for train_index, test_index in kf.split(allX):
 
 
 print("done training using 6 fold validation")
+
+
+# dump accuracy metris in a file
+with open('accur_metr_train.pkl', 'wb') as f:
+    pickle.dump(accur_metrics_train, f)
+with open('accur_metr_test.pkl', 'wb') as f:
+    pickle.dump(accur_metrics_test, f)
 
 # Retrieve the maximum accuracy of the accuracy arrays
 max_accuracy = accuracy_array[np.argmax(accuracy_array)]
@@ -239,9 +253,17 @@ print("")
 # calculates F1-Score for the whole dataset
 print("calculate f1 score")
 f1Score = f1_score(y_true, y_pred, average=None)
-print(f1Score)
+print(f1Score, "\n")
 
-print("")
+# calculates F1-Score for the whole dataset
+print("calculate precision:")
+prec = precision_score(y_true, y_pred, average=None)
+print(prec, "\n")
+
+# calculates F1-Score for the whole dataset
+print("calculate recall")
+recall = recall_score(y_true, y_pred, average=None)
+print(recall, "\n")
 
 # calculates Confusion Matrix for the whole dataset
 print("calculate confusion matrix")
@@ -259,6 +281,7 @@ print("")
 print ("-----------------------------------------------------------------------------")
 print ( "    Cancer Tumor detector using Convolutional Neural Networks - 3-Fold cross validation") 
 print ("Author - Narmada Balasooriya")
+print ("Editor - Leontios Mavropalias")
 print ("-----------------------------------------------------------------------------")
 print("")
 print("accuracy for the test dataset")
@@ -271,8 +294,8 @@ print("Maximum accuracy for test dataset: ", max_accuracy, '%')
 print("")
 print("Maximum accuracy for whole dataset: ", max_accuracy2, '%')
 print("")
-print("F1 score for the whole dataset")
-print(f1Score)
+print("F1, precision, recall for the whole dataset")
+print(f1Score, prec, recall)
 print("")
 print("confusion Matrix")
 print(confusionMatrix)
