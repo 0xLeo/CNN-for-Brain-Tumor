@@ -1,5 +1,5 @@
 # CNN-for-Brain-Tumor
-This is a simple Convolutional Neural Network Model for Brain Tumor Classification into four tumor types and one control group.
+This is a simple Convolutional Neural Network Model for Brain Tumor Classification into five tumour types. 
 
 
 # Requirements
@@ -12,17 +12,18 @@ This is a simple Convolutional Neural Network Model for Brain Tumor Classificati
 Installation of Tensorflow and other libraries can be found in their websites.
 
 # Dataset
-The dataset used for this research project is available under the link https://www.dropbox.com/sh/qor3axvczfd02xy/AABtBMWs8s-_BkIFquOC5Pbua?dl=0
+The dataset used for this research project is available under the link https://figshare.com/articles/brain_tumor_dataset/1512427/5  
+It can be converted to images by using Matlab and running script `dataset_mat_to_img.m`.
 
 # Execution
 1. Make sure all the libaries are installed
 
-2. Get the dataset in the same folder as the program
+2. Use create_dataset.py to convert your image dataset to a .pkl file. 
 
 3. Run the proposed model 
 ```
- $ python proposed_model.py
+ $ python proposed_model.py my_dataset.pkl
  ```
  
  # Altering the program
- You can use the proposed model, change the parameters in it to test for yourown dataset. 
+ You can use file proposed_model.py to change the parameters in it to test for yourown dataset. 
