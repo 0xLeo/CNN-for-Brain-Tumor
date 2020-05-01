@@ -2,14 +2,14 @@
 from __future__ import division, print_function, absolute_import
 
 from skimage import color, io
-#from scipy.misc import imresize, toimage
 import numpy as np
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score
-from sklearn.metrics import precision_score 
-from sklearn.metrics import recall_score 
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
 from sklearn.metrics import classification_report
 from sklearn.model_selection import KFold
 
@@ -18,20 +18,10 @@ import sys
 from glob import glob
 
 import tflearn
-from tflearn.data_utils import shuffle, to_categorical
 from tflearn.layers.core import input_data, dropout, fully_connected
 from tflearn.layers.conv import conv_2d, max_pool_2d
 from tflearn.layers.estimator import regression
-from tflearn.layers.normalization import local_response_normalization
-from tflearn.data_preprocessing import ImagePreprocessing
-from tflearn.data_augmentation import ImageAugmentation
-from tflearn.metrics import Accuracy
-
-import decimal
-from six.moves import cPickle
 import pickle
-
-import h5py
 
 np.set_printoptions(suppress=True)
 
@@ -114,9 +104,9 @@ print("model created done")
 # Prepare train & test samples and train the model
 ###################################################
 
-## Using 6-fold cross validation
+## Using N-fold cross validation
 
-no_folds = 6 # for 6 fold cross validation
+no_folds = 5
 
 accuracy_array = np.zeros((no_folds), dtype='float64') # accuracies of the test dataset for each split in cross validation
 accuracy_array2 = np.zeros((no_folds), dtype='float64') # accuracies for the complete dataset for each split in cross validation
@@ -150,7 +140,7 @@ for train_index, test_index in kf.split(allX):
     split_no += 1 # iterate split no
 
     # Train the network for N epochs per split (shuffles data)  -> total no of training epochs=60
-    model.fit(X, Y, n_epoch=17, run_id='tumour_classification', shuffle=True,
+    model.fit(X, Y, n_epoch=18, run_id='tumour_classification', shuffle=True,
         show_metric=True)
 
     model.save('model_tumour_detector.tflearn')
@@ -173,15 +163,7 @@ for train_index, test_index in kf.split(allX):
     print("")
     print("accuracy for whole dataset: ", accuracy_array2) # print accuracy for the whole dataset
 
-
-print("done training using 6 fold validation")
-
-
-# dump accuracy metris in a file
-with open('accur_metr_train.pkl', 'wb') as f:
-    pickle.dump(accur_metrics_train, f)
-with open('accur_metr_test.pkl', 'wb') as f:
-    pickle.dump(accur_metrics_test, f)
+print("done training using %d fold validation" %no_folds)
 
 # Retrieve the maximum accuracy of the accuracy arrays
 max_accuracy = accuracy_array[np.argmax(accuracy_array)]
@@ -228,7 +210,6 @@ for j in x_list:
 
     # y_label=predict results for the (i)th section in x_test
     y_label = model.predict(x_test)
-    print("running here")
 
     b = 0 # b is reset in each (j)th iteration
     for k in y_label:
@@ -250,22 +231,22 @@ print("")
 print(len(y_true), " bla bla ", len(y_pred))
 print("")
 
-# calculates F1-Score for the whole dataset
+print("calculate accuracy")
+acc_final = accuracy_score(y_true, y_pred)
+print(acc_final, "\n")
+
 print("calculate f1 score")
 f1Score = f1_score(y_true, y_pred, average=None)
 print(f1Score, "\n")
 
-# calculates F1-Score for the whole dataset
 print("calculate precision:")
 prec = precision_score(y_true, y_pred, average=None)
 print(prec, "\n")
 
-# calculates F1-Score for the whole dataset
 print("calculate recall")
 recall = recall_score(y_true, y_pred, average=None)
 print(recall, "\n")
 
-# calculates Confusion Matrix for the whole dataset
 print("calculate confusion matrix")
 confusionMatrix = confusion_matrix(y_true, y_pred, labels=[0, 1, 2, 3, 4])
 print("confusion Matrix Created")
