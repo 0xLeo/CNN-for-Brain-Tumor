@@ -1,6 +1,9 @@
+#!/usr/bin/env python
 ## Author: Narmada M. Balasooriya   ##
 ##         University of Peradeniya ##
 ##         Sri Lanka                ##
+## Editor: Leontios Mavropalias     ##
+##         UoC                      ##
 
 #####################################
 ## Import the necessary libraries ###
@@ -24,26 +27,27 @@ np.set_printoptions(suppress=True)
 ### Imports picture files
 ########################################
 
-# TumorA = astrocytoma = 0
-# TumorB = glioblastoma_multiforme = 1
-# TumorC = oligodendroglioma = 2
-# healthy = 3
-# unknown = 4
+# TumorA = 0
+# TumorB = 1
+# TumorC = 2
+# TumorD = 3
+# TumorE = 4
 
-files_path_tumorA = '<location for astrocytoma .jpg images>'
-files_path_tumorB = '<location for gliblastoma .jpg images>'
-files_path_tumorC = '<location for oligodendrogliom .jpg images>'
-files_path_healthy = '<location for healthy brain .jpg images>'
-files_path_tumor_unknown = '<location for unknown tumor .jpg images>'
+files_path_tumorA = '/mnt/share/mri_dataset/cheng/non_seg/1'
+files_path_tumorB = '/mnt/share/mri_dataset/cheng/non_seg/2'
+files_path_tumorC = '/mnt/share/mri_dataset/cheng/non_seg/3'
+files_path_healthy = '/mnt/share/mri_dataset/cheng/non_seg/4'
+files_path_tumor_unknown = '/mnt/share/mri_dataset/cheng/non_seg/5'
 
-tumorA_path = os.path.join(files_path_tumorA, 'image*.jpg')
-tumorB_path = os.path.join(files_path_tumorB, 'image*.jpg')
-tumorC_path = os.path.join(files_path_tumorC, 'image*.jpg')
-no_tumor_path = os.path.join(files_path_healthy, 'image*.jpg')
-tumor_unknown_path = os.path.join(files_path_tumor_unknown, 'image*.jpg')
+tumorA_path = os.path.join(files_path_tumorA, '*.tiff')
+tumorB_path = os.path.join(files_path_tumorB, '*.tiff')
+tumorC_path = os.path.join(files_path_tumorC, '*.tiff')
+no_tumor_path = os.path.join(files_path_healthy, '*.tiff')
+tumor_unknown_path = os.path.join(files_path_tumor_unknown, '*.tiff')
 
 print("tumor A path")
 
+# BUG: only tumor A is fuled, the rest empty
 tumorA = sorted(glob(tumorA_path))
 tumorB = sorted(glob(tumorB_path))
 tumorC = sorted(glob(tumorC_path))
@@ -63,7 +67,8 @@ count = 0
 y_count = 0
 for f in tumorA:
     try:
-        img = io.imread(f)
+        #img = io.imread(f)
+        img = cv2.imread(f)
         new_img = imresize(img, (size_image, size_image, 3))
         allX[count] = np.array(new_img)
         ally[y_count] = 0
@@ -75,7 +80,8 @@ for f in tumorA:
 print("tumorA done")
 for f in tumorB:
     try:
-        img = io.imread(f)
+        #img = io.imread(f)
+        img = cv2.imread(f)
         new_img = imresize(img, (size_image, size_image, 3))
         allX[count] = np.array(new_img)
         ally[y_count] = 1
@@ -86,7 +92,8 @@ for f in tumorB:
 print("tumorB done")
 for f in tumorC:
     try:
-        img = io.imread(f)
+        #img = io.imread(f)
+        img = cv2.imread(f)
         new_img = imresize(img, (size_image, size_image, 3))
         allX[count] = np.array(new_img)
         ally[y_count] = 2
@@ -97,7 +104,8 @@ for f in tumorC:
 print("tumorC done")
 for f in no_tumor:
     try:
-        img = io.imread(f)
+        #img = io.imread(f)
+        img = cv2.imread(f)
         new_img = imresize(img, (size_image, size_image, 3))
         allX[count] = np.array(new_img)
         ally[y_count] = 3
@@ -105,10 +113,11 @@ for f in no_tumor:
         y_count += 1
     except:
         continue
-print("no tumor done")
+print("tumorD done")
 for f in tumor_unknown:
     try:
-        img = io.imread(f)
+        #img = io.imread(f)
+        img = cv2.imread(f)
         new_img = imresize(img, (size_image, size_image, 3))
         allX[count] = np.array(new_img)
         ally[y_count] = 4
@@ -116,12 +125,12 @@ for f in tumor_unknown:
         y_count += 1
     except:
         continue
-print("unknown done")
+print("tumorE done")
 print("images are arrayed")
 
 print("data are split")
 
-f = open('full_dataset_final.pkl', 'wb')
+f = open('dataset_cheng_non_seg.pkl', 'wb')
 
 print("pickle file open")
 cPickle.dump((allX, ally), f, protocol=cPickle.HIGHEST_PROTOCOL)
