@@ -21,6 +21,11 @@ import tflearn
 from tflearn.layers.core import input_data, dropout, fully_connected
 from tflearn.layers.conv import conv_2d, max_pool_2d
 from tflearn.layers.estimator import regression
+from tflearn.data_utils import shuffle, to_categorical
+from tflearn.layers.normalization import local_response_normalization
+from tflearn.data_preprocessing import ImagePreprocessing
+from tflearn.data_augmentation import ImageAugmentation
+from tflearn.metrics import Accuracy
 import pickle
 
 np.set_printoptions(suppress=True)
@@ -68,6 +73,10 @@ print("layer 2")
 conv_2 = conv_2d(network, nb_filter=32, filter_size=3, activation='relu', name='conv_2')
 print("layer 3")
 
+# 6: Max pooling layer
+network = max_pool_2d(conv_2, 2)
+print("layer 3a - delete")
+
 # 4: Convolution layer with 64 filters -> filter size = 3x3
 conv_3 = conv_2d(conv_2, nb_filter=64, filter_size=3, activation='relu', name='conv_3')
 print("layer 4")
@@ -84,8 +93,8 @@ print("layer 6")
 network = dropout(network, 0.6)
 print("layer 7")
 
-# 9: Fully-connected layer with 5 outputs for five tumor categories
-network = fully_connected(network, 5, activation='softmax')
+# 9: Fully-connected layer with 3 outputs for three tumor categories
+network = fully_connected(network, 3, activation='softmax')
 print("layer 8")
 
 
@@ -133,15 +142,15 @@ for train_index, test_index in kf.split(allX):
     Y, Y_test = allY[train_index], allY[test_index]
 
     # create output labels for whole dataset and test dataset
-    Y = to_categorical(Y, 5)
-    Y_test = to_categorical(Y_test, 5)
+    Y = to_categorical(Y, 3)
+    Y_test = to_categorical(Y_test, 3)
 
     print("train split: " , split_no)
     split_no += 1 # iterate split no
 
     # Train the network for N epochs per split (shuffles data)  -> total no of training epochs=60
-    model.fit(X, Y, n_epoch=18, run_id='tumour_classification', shuffle=True,
-        show_metric=True)
+    model.fit(X, Y, n_epoch=1, run_id='tumour_classification', shuffle=True,
+        show_metric=True, validation_set = (X_test, Y_test))
 
     model.save('model_tumour_detector.tflearn')
     print("Network trained")
@@ -248,7 +257,7 @@ recall = recall_score(y_true, y_pred, average=None)
 print(recall, "\n")
 
 print("calculate confusion matrix")
-confusionMatrix = confusion_matrix(y_true, y_pred, labels=[0, 1, 2, 3, 4])
+confusionMatrix = confusion_matrix(y_true, y_pred, labels=[0, 1, 2])
 print("confusion Matrix Created")
 print(confusionMatrix)
 
@@ -281,5 +290,5 @@ print("")
 print("confusion Matrix")
 print(confusionMatrix)
 print("")
+print(classification_report(y_pred,y_true))
 print ("-----------------------------------------------------------------------------")
-

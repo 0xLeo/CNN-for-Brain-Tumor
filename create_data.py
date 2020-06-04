@@ -1,6 +1,9 @@
+#!/usr/bin/env python
 ## Author: Narmada M. Balasooriya   ##
 ##         University of Peradeniya ##
 ##         Sri Lanka                ##
+## Editor: Leontios Mavropalias     ##
+##         UoC                      ##
 
 #####################################
 ## Import the necessary libraries ###
@@ -8,10 +11,12 @@
 
 from __future__ import division, print_function, absolute_import
 
+from skimage import color, io
 import numpy as np
 import os
 from glob import glob
 import cv2
+
 from six.moves import cPickle
 import pickle
 
@@ -21,34 +26,28 @@ np.set_printoptions(suppress=True)
 ### Imports picture files
 ########################################
 
-# TumorA = 
-# TumorB = 
-# TumorC = 
-# TumorD = 
-# TumorE = 
+# TumorA = 0
+# TumorB = 1
+# TumorC = 2
+# TumorD = 3
+# TumorE = 4
 
-# TODO: rename: these are actually 5 tumour types
-files_path_tumorA = '/mnt/share/mri_dataset/cheng/full/1'
-files_path_tumorB = '/mnt/share/mri_dataset/cheng/full/2'
-files_path_tumorC = '/mnt/share/mri_dataset/cheng/full/3'
-files_path_healthy = '/mnt/share/mri_dataset/cheng/full/4'
-files_path_tumor_unknown = '/mnt/share/mri_dataset/cheng/full/5'
+files_path_tumorA = '/mnt/share/mri_dataset/cheng/lbl_orig///1/'
+files_path_tumorB = '/mnt/share/mri_dataset/cheng/lbl_orig/2/'
+files_path_tumorC = '/mnt/share/mri_dataset/cheng/lbl_orig/3/'
 
 tumorA_path = os.path.join(files_path_tumorA, '*.tiff')
 tumorB_path = os.path.join(files_path_tumorB, '*.tiff')
 tumorC_path = os.path.join(files_path_tumorC, '*.tiff')
-no_tumor_path = os.path.join(files_path_healthy, '*.tiff')
-tumor_unknown_path = os.path.join(files_path_tumor_unknown, '*.tiff')
 
 print("tumor A path")
 
+# BUG: only tumor A is fuled, the rest empty
 tumorA = sorted(glob(tumorA_path))
 tumorB = sorted(glob(tumorB_path))
 tumorC = sorted(glob(tumorC_path))
-no_tumor = sorted(glob(no_tumor_path))
-tumor_unknown = sorted(glob(tumor_unknown_path))
 
-n_files = len(tumorA) + len(tumorB) + len(tumorC) + len(no_tumor) + len(tumor_unknown)
+n_files = len(tumorA) + len(tumorB) + len(tumorC) 
 print("######print here")
 print(n_files)
 print("##########")
@@ -61,6 +60,7 @@ count = 0
 y_count = 0
 for f in tumorA:
     try:
+        #img = io.imread(f)
         img = cv2.imread(f)
         new_img = cv2.resize(img,(size_image,size_image))
         allX[count] = np.array(new_img)
@@ -68,11 +68,12 @@ for f in tumorA:
         count += 1
         y_count += 1
     except:
-        raise SystemError("Uh-oh, something wrong with label A...")
+        continue
 
 print("tumorA done")
 for f in tumorB:
     try:
+        #img = io.imread(f)
         img = cv2.imread(f)
         new_img = cv2.resize(img,(size_image,size_image))
         allX[count] = np.array(new_img)
@@ -80,11 +81,11 @@ for f in tumorB:
         count += 1
         y_count += 1
     except:
-        raise SystemError("Uh-oh, something wrong with label B...")
-
+        continue
 print("tumorB done")
 for f in tumorC:
     try:
+        #img = io.imread(f)
         img = cv2.imread(f)
         new_img = cv2.resize(img,(size_image,size_image))
         allX[count] = np.array(new_img)
@@ -92,37 +93,12 @@ for f in tumorC:
         count += 1
         y_count += 1
     except:
-        raise SystemError("Uh-oh, something wrong with label C...")
-
+        print("Tumour C not set")
+        continue
 print("tumorC done")
-for f in no_tumor:
-    try:
-        img = cv2.imread(f)
-        new_img = cv2.resize(img,(size_image,size_image))
-        allX[count] = np.array(new_img)
-        ally[y_count] = 3
-        count += 1
-        y_count += 1
-    except:
-        raise SystemError("Uh-oh, something wrong with label D...")
+print("data are split")
 
-print("no tumor done")
-for f in tumor_unknown:
-    try:
-        img = cv2.imread(f)
-        new_img = cv2.resize(img,(size_image,size_image))
-        allX[count] = np.array(new_img)
-        ally[y_count] = 4
-        count += 1
-        y_count += 1
-    except:
-        raise SystemError("Uh-oh, something wrong with label E...")
-
-print("unknown done")
-print("images are arrayed")
-
-
-f = open('full_dataset_final.pkl', 'wb')
+f = open('dataset_cheng_full_nonseg_lbl.pkl', 'wb')
 
 print("pickle file open")
 cPickle.dump((allX, ally), f, protocol=cPickle.HIGHEST_PROTOCOL)
