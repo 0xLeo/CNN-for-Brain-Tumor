@@ -16,6 +16,7 @@ from sklearn.model_selection import KFold
 import os
 import sys
 from glob import glob
+import random
 
 import tflearn
 from tflearn.layers.core import input_data, dropout, fully_connected
@@ -47,6 +48,12 @@ print("pickle file open")
 
 ## Load from the file for X(image data) and Y(tumor type)
 allX, allY = pickle.load(f)
+# randomly shuffle
+allXY =  list(zip(allX, allY))
+random.shuffle(allXY)
+allX, allY = zip(*allXY)
+
+
 print("pickle opened")
 f.close()
 
@@ -74,8 +81,8 @@ conv_2 = conv_2d(network, nb_filter=32, filter_size=3, activation='relu', name='
 print("layer 3")
 
 # 6: Max pooling layer
-network = max_pool_2d(conv_2, 2)
-print("layer 3a - delete")
+#network = max_pool_2d(conv_2, 2)
+#print("layer 3a - optional")
 
 # 4: Convolution layer with 64 filters -> filter size = 3x3
 conv_3 = conv_2d(conv_2, nb_filter=64, filter_size=3, activation='relu', name='conv_3')
@@ -130,40 +137,53 @@ kf = KFold(n_splits=no_folds, shuffle = True, random_state=42) # create split cr
 
 # to plot the metrics when training is done
 accur_metrics_train = []
-accur_metrics_test = []
+accur_metrics_val = []
 
-    ###################################
-    # Train model for N epochs
-    ###################################
-for train_index, test_index in kf.split(allX):
+###################################
+# Train model for N epochs
+###################################
 
-    # split dataset using kf criteria into train and test dataset
-    X, X_test = allX[train_index], allX[test_index]
-    Y, Y_test = allY[train_index], allY[test_index]
 
-    # create output labels for whole dataset and test dataset
+# reserve some data (10%) for testing
+ind_rand = [random.randint(0, len(allX)-1) for _ in range(int(.1*len(allX)))]
+allX_test = [allX[i] for i in ind_rand]
+allY_test = [allY[i] for i in ind_rand]
+# remove the testing data, keep the rest for training+val
+allX = [allX[i] for i in range(len(allX)-1) if i not in ind_rand]
+allY = [allY[i] for i in range(len(allY)-1) if i not in ind_rand]
+allX = np.array(allX)
+allY = np.array(allY)
+
+for train_index, val_index in kf.split(allX):
+
+    # split dataset using kf criteria into train and val dataset
+    X, X_val = allX[train_index.astype(int)], allX[val_index.astype(int)]
+    Y, Y_val = allY[train_index.astype(int)], allY[val_index.astype(int)]
+
+    # create output labels for whole dataset and val dataset
     Y = to_categorical(Y, 3)
-    Y_test = to_categorical(Y_test, 3)
+    Y_val = to_categorical(Y_val, 3)
 
     print("train split: " , split_no)
     split_no += 1 # iterate split no
 
     # Train the network for N epochs per split (shuffles data)  -> total no of training epochs=60
-    model.fit(X, Y, n_epoch=1, run_id='tumour_classification', shuffle=True,
-        show_metric=True, validation_set = (X_test, Y_test))
+    model.fit(X, Y, n_epoch=5, run_id='tumour_classification', shuffle=True,
+        show_metric=True, validation_set = (X_val, Y_val))
 
     model.save('model_tumour_detector.tflearn')
     print("Network trained")
 
-    # Calculate accuracies for test dataset and whole dataset in each split run
-    score = model.evaluate(X_test, Y_test)
+    # Calculate accuracies for val dataset and whole dataset in each split run
+    score = model.evaluate(X_val, Y_val)
     score2 = model.evaluate(X, Y)
 
     # populate the accuracy arrays
     accuracy_array[i] = score[0] * 100
     accuracy_array2[i] = score2[0] * 100
     accur_metrics_train.append(score)
-    accur_metrics_test.append(score2)
+    accur_metrics_val.append(score2)
+    print(i)
     i += 1 # iterate
 
     print("accuracy checked")
@@ -201,13 +221,16 @@ k = 0
 c = 0
 b = 0
 
+###################################################
+# Use test data
+###################################################
 # create Y_true and y_pred np.arrays to save the corresponding label (true label and predicted label) -> labels are shown at the beginning of the program
-y_pred = np.zeros((len(allY)), dtype='int32')
-y_true = np.zeros((len(allY)), dtype='int32')
+y_pred = np.zeros((len(allX_test)), dtype='int32')
+y_true = np.zeros((len(allY_test)), dtype='int32')
 
 # split allX and allY into 90 sections
-x_list = np.array_split(allX, 90)
-y_list = np.array_split(allY, 90)
+x_list = np.array_split(allX_test, 90)
+y_list = np.array_split(allY_test, 90)
 
 i = 0
 
