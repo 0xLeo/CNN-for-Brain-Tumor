@@ -29,16 +29,17 @@ np.set_printoptions(suppress=True)
 # TumorA = 0
 # TumorB = 1
 # TumorC = 2
-# TumorD = 3
-# TumorE = 4
 
-files_path_tumorA = '/mnt/share/mri_dataset/cheng/lbl_orig///1/'
+###vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+### Change below for your dataset
+files_path_tumorA = '/mnt/share/mri_dataset/cheng/lbl_orig/1/'
 files_path_tumorB = '/mnt/share/mri_dataset/cheng/lbl_orig/2/'
 files_path_tumorC = '/mnt/share/mri_dataset/cheng/lbl_orig/3/'
 
 tumorA_path = os.path.join(files_path_tumorA, '*.tiff')
 tumorB_path = os.path.join(files_path_tumorB, '*.tiff')
 tumorC_path = os.path.join(files_path_tumorC, '*.tiff')
+###^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 print("tumor A path")
 
