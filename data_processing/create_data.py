@@ -67,8 +67,9 @@ for f in tumorA:
         ally[y_count] = 0
         count += 1
         y_count += 1
-    except:
-        continue
+    except exception as e:
+        print("Tumour A not set")
+        raise e
 
 print("tumorA done")
 for f in tumorB:
@@ -80,9 +81,11 @@ for f in tumorB:
         ally[y_count] = 1
         count += 1
         y_count += 1
-    except:
-        continue
+    except exception as e:
+        print("Tumour B not set")
+        raise e
 print("tumorB done")
+
 for f in tumorC:
     try:
         #img = io.imread(f)
@@ -92,17 +95,19 @@ for f in tumorC:
         ally[y_count] = 2
         count += 1
         y_count += 1
-    except:
+    except exception as e:
         print("Tumour C not set")
-        continue
+        raise e
+
 print("tumorC done")
 print("data are split")
 
-f = open('dataset_cheng_full_nonseg_lbl.pkl', 'wb')
+pkl_fname = 'dataset_cheng_full_nonseg_lbl.pkl'
+f = open(pkl_fname, 'wb')
 
 print("pickle file open")
 cPickle.dump((allX, ally), f, protocol=cPickle.HIGHEST_PROTOCOL)
-print("pickle dumped")
+print("pickle dumped at:\n%s" % pkl_fname)
 f.close()
 
 print("finished")
