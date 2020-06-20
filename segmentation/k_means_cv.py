@@ -40,24 +40,3 @@ def kmeans_wrapper(X, k, image_as_input = False):
         res = centers[labels.flatten()]
         res2 = res.reshape((orig_shape))
         return res2, centers
-
-
-def main():
-    x1 = np.random.randint(25,54,(25,4))
-    x2 = np.random.randint(45,75,(25,4))
-    # concatenate them in one (50,4) array
-    X = np.vstack((x1, x2))
-    S, centers = kmeans_wrapper(X, 2)
-    # with an image
-    im = cv2.imread('../kmeans/santorini.jpg') 
-    cv2.imshow('input', im)
-    cv2.waitKey()
-    cv2.destroyAllWindows()
-    assert im is not None, "Invalid input image"
-    quant, centers = kmeans_wrapper(im, 8, True)
-    cv2.imshow('output', quant)
-    cv2.waitKey()
-    cv2.destroyAllWindows()
-
-if __name__ == '__main__':
-    main()
