@@ -13,12 +13,15 @@ Installation of Tensorflow and other libraries can be found in their websites.
 
 # Dataset
 The dataset used for this research project is available under the link https://figshare.com/articles/brain_tumor_dataset/1512427/5  
-It can be converted to images by using Matlab and running script `dataset_mat_to_img.m`.
+It can be converted to images by using Matlab and running script `data_processing/dataset_mat_to_img.m`.
 
 # Execution
 1. Make sure all the libaries are installed
 
-2. Use create_dataset.py to convert your image dataset to a .pkl file. 
+2.  
+
+2.1 Modify the marked line at `create_dataset.py` to include the paths to your image data  
+2.2 then run it to convert your image dataset to a .pkl file. 
 
 3. Run the proposed model 
 ```
