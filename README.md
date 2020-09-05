@@ -20,7 +20,7 @@ It can be converted to images by using Matlab and running script `data_processin
 
 2.  
 
-2.1 Modify the marked line at `create_dataset.py` to include the paths to your image data  
+2.1 Modify the marked lines at `create_dataset.py` to include the paths to your image data  
 2.2 then run it to convert your image dataset to a .pkl file. 
 
 3. Run the proposed model 
